@@ -1,0 +1,98 @@
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CommitCommand;
+import org.eclipse.jgit.api.PushCommand;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class GitCloneUpdateCommitPush {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter Bitbucket repository URL: ");
+        String repoUrl = scanner.nextLine();
+
+        System.out.print("Enter branch name to clone: ");
+        String branchName = scanner.nextLine();
+
+        System.out.print("Enter local folder path: ");
+        String localPath = scanner.nextLine();
+
+        System.out.print("Enter your Bitbucket username: ");
+        String username = scanner.nextLine();
+
+        System.out.print("Enter your Bitbucket password: ");
+        String password = scanner.nextLine();
+
+        System.out.print("Enter the filename to update (e.g., README.md or test-file.txt): ");
+        String fileName = scanner.nextLine();
+
+        File localDir = new File(localPath);
+
+        try {
+            Git git;
+            if (!localDir.exists()) {
+                // ✅ Clone repository if it does not exist
+                System.out.println("Cloning repository...");
+                git = Git.cloneRepository()
+                        .setURI(repoUrl)
+                        .setDirectory(localDir)
+                        .setBranch(branchName)
+                        .setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password))
+                        .call();
+                System.out.println("✅ Repository cloned successfully to: " + localPath);
+            } else {
+                // ✅ If repo exists, open it
+                System.out.println("Repository already exists. Opening...");
+                git = Git.open(localDir);
+            }
+
+            // ✅ Get the file to update
+            File fileToUpdate = new File(localPath + "/" + fileName);
+
+            if (fileToUpdate.exists()) {
+                // ✅ Update existing file
+                FileWriter writer = new FileWriter(fileToUpdate, true);  // Append mode
+                writer.write("\n// Update made on " + new java.util.Date());
+                writer.close();
+                System.out.println("📝 Updated file: " + fileName);
+            } else {
+                // ✅ Create new file if not exists
+                FileWriter writer = new FileWriter(fileToUpdate);
+                writer.write("This is a new file created by the program.\n");
+                writer.close();
+                System.out.println("🆕 Created new file: " + fileName);
+            }
+
+            // ✅ Add files
+            System.out.println("📌 Adding changes...");
+            AddCommand add = git.add().addFilepattern(".");
+            add.call();
+
+            // ✅ Commit changes
+            System.out.println("📝 Committing changes...");
+            CommitCommand commit = git.commit().setMessage("Updated " + fileName + " via Java program");
+            commit.call();
+
+            // ✅ Push changes
+            System.out.println("🚀 Pushing to remote...");
+            PushCommand push = git.push()
+                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password));
+            push.call();
+
+            System.out.println("✅ Changes pushed successfully!");
+            git.close();
+        } catch (GitAPIException | IOException e) {
+            System.out.println("❌ Error: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            scanner.close();
+            System.out.println("🎉 Process completed!");
+        }
+    }
+}
