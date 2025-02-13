@@ -1,0 +1,9 @@
+Hi Chaitanya,
+
+I made the change for 'phaci delete' a few days ago. The update was necessary because I modified a part of the code where keeping the previous column name would have caused failures. To ensure consistency across all scripts and data, I had to rename the column.
+
+Once the latest code is deployed in CDP ST, I will update the column name to its corrected version. Please let me know when the deployment is completed.
+
+PS: I will inform Inftent in advance if I need to make such changes in the future.
+
+Best,
